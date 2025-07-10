@@ -1,0 +1,180 @@
+/* Import Font dari Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+/* ----- 1. Gaya Global & Tema Utama ----- */
+:root {
+  --glow-color: #00d4ff; /* Warna utama untuk efek cahaya */
+  --dark-bg: #050a18;     /* Warna latar belakang gelap */
+  --text-color: #e0e0e0;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Mencegah scrollbar */
+  font-family: 'Poppins', sans-serif;
+  background-color: var(--dark-bg);
+  color: var(--text-color);
+}
+
+/* ----- 2. Latar Belakang Galaksi & Animasi Bintang ----- */
+#galaxy-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Membuat partikel bintang dengan pseudo-elements untuk efisiensi */
+.stars {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  /* Membuat ratusan bintang dengan berbagai ukuran dan posisi acak */
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #ffffff, transparent),
+    radial-gradient(1px 1px at 80% 10%, #ffffff, transparent),
+    radial-gradient(1px 1px at 50% 70%, #ffffff, transparent),
+    radial-gradient(2px 2px at 10% 90%, #ffffff, transparent),
+    radial-gradient(2px 2px at 90% 40%, #ffffff, transparent);
+  animation: animateStars 150s linear infinite;
+}
+
+/* Animasi untuk menggerakkan bintang secara perlahan */
+@keyframes animateStars {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-1000px); /* Gerakkan ke atas sejauh 1000px */
+  }
+}
+
+
+/* ----- 3. Node Konsep (Bintang) ----- */
+.node {
+  position: absolute; /* Posisi akan diatur oleh JavaScript */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  border-radius: 50%;
+  background-color: var(--glow-color);
+  color: #000;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  /* Efek cahaya (glow) yang berlapis */
+  box-shadow: 0 0 8px var(--glow-color), 0 0 16px var(--glow-color), 0 0 24px var(--glow-color);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  z-index: 10;
+}
+
+/* Efek saat kursor diarahkan ke node */
+.node:hover {
+  transform: scale(1.2);
+  box-shadow: 0 0 12px var(--glow-color), 0 0 24px var(--glow-color), 0 0 48px var(--glow-color);
+}
+
+/* Contoh Ukuran untuk Node Berdasarkan Level Hierarki */
+.level-0 { width: 150px; height: 150px; font-size: 18px; }
+.level-1 { width: 120px; height: 120px; font-size: 16px; }
+.level-2 { width: 90px; height: 90px; font-size: 12px; }
+
+
+/* ----- 4. Panel Informasi ----- */
+#info-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 400px;
+  max-width: 90%;
+  height: 100%;
+  padding: 30px;
+  box-sizing: border-box;
+  z-index: 100;
+  
+  /* Efek "Frosted Glass" */
+  background-color: rgba(20, 20, 40, 0.6); /* Warna semi-transparan */
+  backdrop-filter: blur(10px);              /* Efek blur pada latar belakang */
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+
+  /* Transisi untuk animasi slide-in/out */
+  transition: transform 0.5s ease-in-out;
+}
+
+/* State saat panel disembunyikan */
+#info-panel.hidden {
+  transform: translateX(100%);
+}
+
+/* State saat panel terlihat */
+#info-panel.visible {
+  transform: translateX(0);
+}
+
+
+/* ----- 5. Tipografi & Konten di Dalam Panel ----- */
+#info-panel h2 {
+  color: var(--glow-color);
+  margin-top: 20px;
+  margin-bottom: 15px;
+}
+
+#info-panel p {
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+#info-panel ul {
+  list-style: none;
+  padding-left: 0;
+}
+
+#info-panel ul li {
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+#info-panel blockquote {
+  border-left: 3px solid var(--glow-color);
+  padding-left: 15px;
+  margin-left: 0;
+  font-style: italic;
+  color: #b0b0b0;
+}
+
+#close-button {
+  position: absolute;
+  top: 15px;
+  right: 20px;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 32px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+#close-button:hover {
+  transform: scale(1.2) rotate(90deg);
+  color: var(--glow-color);
+}
+
+/* ----- 6. Garis Penghubung (Contoh Sederhana) ----- */
+/* CATATAN: Garis penghubung yang sebenarnya (posisi, panjang, rotasi)
+  akan paling baik dibuat dan diatur menggunakan JavaScript,
+  kemungkinan besar dengan elemen SVG untuk fleksibilitas.
+  Ini adalah styling dasar untuk elemen garis jika dibuat dengan div.
+*/
+.line {
+  position: absolute;
+  height: 2px;
+  background-color: rgba(0, 212, 255, 0.5);
+  transform-origin: 0 0; /* Titik rotasi dari awal garis */
+  z-index: 1;
+}
