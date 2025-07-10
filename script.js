@@ -45,33 +45,25 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // === 2. FUNGSI UTAMA & HELPER ===
 
-    /**
-     * Helper function untuk mendapatkan ukuran node berdasarkan levelnya.
-     * Ini membuat kode lebih bersih dan mudah dikelola.
-     */
     function getNodeSize(level) {
         const isDesktop = window.innerWidth > 768;
         if (level === 0) return isDesktop ? 150 : 120;
         if (level === 1) return isDesktop ? 120 : 100;
-        return isDesktop ? 90 : 70; // Level 2 dan seterusnya
+        return isDesktop ? 90 : 70;
     }
 
-    /**
-     * Fungsi utama untuk merender seluruh galaksi (node dan garis)
-     */
     function renderGalaxy() {
         galaxyContainer.querySelectorAll('.node').forEach(n => n.remove());
         svg.innerHTML = '';
         svg.setAttribute('width', window.innerWidth);
         svg.setAttribute('height', window.innerHeight);
-
-        createNodeElement(kkaGalaxyData, 0, null);
+        createNodeElement(kkaGalaxyData, 0, null, 0); // Memulai dengan angle 0
     }
 
     /**
-     * Membuat elemen DIV untuk setiap node secara rekursif.
+     * PERBAIKAN: Fungsi ini sekarang menerima 'angle' dengan benar.
      */
-    function createNodeElement(nodeData, level, parentCoords) {
+    function createNodeElement(nodeData, level, parentCoords, angle) {
         const nodeElement = document.createElement('div');
         const nodeSize = getNodeSize(level);
 
@@ -81,7 +73,8 @@ document.addEventListener('DOMContentLoaded', () => {
         nodeElement.style.width = `${nodeSize}px`;
         nodeElement.style.height = `${nodeSize}px`;
 
-        const coords = calculateNodePosition(level, parentCoords, nodeData.children.length, nodeSize);
+        // PERBAIKAN: Memastikan 'angle' diteruskan ke fungsi kalkulasi
+        const coords = calculateNodePosition(level, parentCoords, nodeSize, angle);
         nodeElement.style.left = `${coords.x}px`;
         nodeElement.style.top = `${coords.y}px`;
 
@@ -95,17 +88,16 @@ document.addEventListener('DOMContentLoaded', () => {
         if (nodeData.children && nodeData.children.length > 0) {
             const angleIncrement = (2 * Math.PI) / nodeData.children.length;
             nodeData.children.forEach((childNode, index) => {
-                const angle = index * angleIncrement;
-                createNodeElement(childNode, level + 1, coords, angle);
+                const newAngle = index * angleIncrement;
+                createNodeElement(childNode, level + 1, coords, newAngle);
             });
         }
     }
 
     /**
-     * Menghitung posisi node. Pusat di tengah, anak-anaknya melingkar.
-     * Versi ini sudah diperbaiki dan disederhanakan.
+     * PERBAIKAN: Fungsi ini sekarang menerima 'angle' dan menghitung posisi dengan benar.
      */
-    function calculateNodePosition(level, parentCoords, childCount, nodeSize, angle) {
+    function calculateNodePosition(level, parentCoords, nodeSize, angle) {
         if (level === 0) {
             return {
                 x: window.innerWidth / 2 - (nodeSize / 2),
@@ -124,9 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
 
-    /**
-     * Menggambar garis SVG dari pusat satu node ke pusat node lain.
-     */
     function renderLine(startCoords, endCoords, level) {
         const line = document.createElementNS(svgNS, 'line');
         const parentSize = getNodeSize(level - 1);
