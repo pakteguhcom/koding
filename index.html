@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Perkalian Seru</title>
+    
+    <!-- Impor Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Impor Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        /* Mengaplikasikan font Poppins ke seluruh halaman */
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Latar belakang gradien untuk tema gelap */
+        .gradient-bg {
+            background-color: #1a202c;
+            background-image: radial-gradient(at 47% 33%, hsl(205.00, 0%, 100%) 0, transparent 59%), radial-gradient(at 82% 65%, hsl(218.00, 89%, 50%) 0, transparent 55%);
+        }
+
+        /* Animasi getar untuk jawaban salah */
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-10px); }
+            20%, 40%, 60%, 80% { transform: translateX(10px); }
+        }
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        /* Posisi canvas untuk konfeti */
+        #confetti-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none; /* Membuat canvas tidak bisa diklik */
+            z-index: 100;
+        }
+    </style>
+</head>
+<body class="gradient-bg text-white min-h-screen flex items-center justify-center p-4">
+
+    <!-- Canvas untuk animasi konfeti -->
+    <canvas id="confetti-canvas"></canvas>
+
+    <!-- Kontainer Utama Game -->
+    <main class="w-full max-w-md bg-gray-800 bg-opacity-60 backdrop-blur-sm rounded-2xl shadow-2xl p-6 sm:p-8 text-center border border-gray-700">
+        
+        <!-- Header dengan Skor -->
+        <header class="mb-6">
+            <h1 class="text-2xl font-bold text-cyan-300">Latihan Perkalian</h1>
+            <p id="score-display" class="text-lg mt-1 text-lime-400">Skor: 0</p>
+        </header>
+
+        <!-- Kartu Soal -->
+        <div id="problem-card" class="bg-gray-900 bg-opacity-70 rounded-xl p-8 mb-6 transition-transform duration-300">
+            <p class="text-6xl font-bold tracking-widest">
+                <span id="num1">5</span>
+                <span class="text-fuchsia-400 mx-4">x</span>
+                <span id="num2">8</span>
+            </p>
+        </div>
+
+        <!-- Area Input dan Tombol -->
+        <div class="space-y-4">
+            <input 
+                type="number" 
+                id="answer-input" 
+                class="w-full p-4 text-2xl text-center bg-gray-700 border-2 border-gray-600 rounded-lg focus:outline-none focus:ring-4 focus:ring-cyan-500 focus:border-cyan-500 transition-all duration-300"
+                placeholder="Jawabanmu..."
+            >
+            <button 
+                id="check-btn"
+                class="w-full p-4 text-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-fuchsia-500 rounded-lg hover:scale-105 active:scale-100 transition-transform duration-300 shadow-lg hover:shadow-cyan-400/50"
+            >
+                Cek Jawaban
+            </button>
+        </div>
+
+        <!-- Area Umpan Balik -->
+        <footer class="mt-6 h-8">
+            <p id="feedback-message" class="text-xl font-semibold transition-opacity duration-300 opacity-0"></p>
+        </footer>
+
+    </main>
+
+    <script>
+        // --- Referensi Elemen DOM ---
+        const num1El = document.getElementById('num1');
+        const num2El = document.getElementById('num2');
+        const answerInput = document.getElementById('answer-input');
+        const checkBtn = document.getElementById('check-btn');
+        const scoreDisplay = document.getElementById('score-display');
+        const feedbackMessage = document.getElementById('feedback-message');
+        const confettiCanvas = document.getElementById('confetti-canvas');
+        const problemCard = document.getElementById('problem-card');
+
+        // --- Variabel State Game ---
+        let score = 0;
+        let currentCorrectAnswer = 0;
+
+        // --- Logika Konfeti ---
+        const ctx = confettiCanvas.getContext('2d');
+        let confettiParticles = [];
+        const confettiColors = ['#fde047', '#a78bfa', '#f472b6', '#4ade80', '#67e8f9'];
+
+        function resizeCanvas() {
+            confettiCanvas.width = window.innerWidth;
+            confettiCanvas.height = window.innerHeight;
+        }
+
+        function createConfetti() {
+            const particleCount = 200;
+            const angle = Math.PI * 2 / particleCount;
+            for (let i = 0; i < particleCount; i++) {
+                confettiParticles.push({
+                    x: confettiCanvas.width / 2,
+                    y: confettiCanvas.height / 2,
+                    radius: Math.random() * 4 + 2,
+                    color: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+                    velocity: {
+                        x: Math.cos(angle * i) * (Math.random() * 10 + 2),
+                        y: Math.sin(angle * i) * (Math.random() * 10 + 2)
+                    },
+                    alpha: 1,
+                    friction: 0.98
+                });
+            }
+        }
+
+        function animateConfetti() {
+            ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+            if (confettiParticles.length === 0) return;
+
+            confettiParticles.forEach((particle, index) => {
+                particle.velocity.x *= particle.friction;
+                particle.velocity.y *= particle.friction;
+                particle.velocity.y += 0.1; // gravitasi
+                particle.x += particle.velocity.x;
+                particle.y += particle.velocity.y;
+                particle.alpha -= 0.01;
+
+                if (particle.alpha <= 0) {
+                    confettiParticles.splice(index, 1);
+                } else {
+                    ctx.save();
+                    ctx.globalAlpha = particle.alpha;
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2, false);
+                    ctx.fillStyle = particle.color;
+                    ctx.fill();
+                    ctx.restore();
+                }
+            });
+            requestAnimationFrame(animateConfetti);
+        }
+        
+        // --- Logika Utama Game ---
+
+        /**
+         * Menghasilkan soal perkalian baru dan menampilkannya di UI.
+         */
+        function generateNewProblem() {
+            const number1 = Math.floor(Math.random() * 12) + 1;
+            const number2 = Math.floor(Math.random() * 12) + 1;
+            
+            currentCorrectAnswer = number1 * number2;
+            
+            num1El.textContent = number1;
+            num2El.textContent = number2;
+            
+            answerInput.value = '';
+            answerInput.focus();
+        }
+
+        /**
+         * Menampilkan umpan balik (benar/salah) kepada pengguna.
+         * @param {string} message - Pesan yang akan ditampilkan.
+         * @param {boolean} isCorrect - Menentukan warna pesan.
+         */
+        function showFeedback(message, isCorrect) {
+            feedbackMessage.textContent = message;
+            feedbackMessage.classList.remove('text-lime-400', 'text-red-400', 'opacity-0');
+            feedbackMessage.classList.add(isCorrect ? 'text-lime-400' : 'text-red-400');
+            
+            // Sembunyikan pesan setelah beberapa detik
+            setTimeout(() => {
+                feedbackMessage.classList.add('opacity-0');
+            }, 2000);
+        }
+
+        /**
+         * Memeriksa jawaban yang dimasukkan oleh pengguna.
+         */
+        function checkAnswer() {
+            const userAnswer = parseInt(answerInput.value, 10);
+
+            if (isNaN(userAnswer)) {
+                showFeedback("Masukkan angka dulu ya!", false);
+                return;
+            }
+
+            if (userAnswer === currentCorrectAnswer) {
+                // Jawaban Benar
+                score += 10;
+                scoreDisplay.textContent = `Skor: ${score}`;
+                showFeedback("Hebat! Jawabanmu Benar!", true);
+                
+                // Picu konfeti
+                createConfetti();
+                animateConfetti();
+
+                // Ganti soal baru setelah jeda singkat
+                problemCard.classList.add('scale-110');
+                setTimeout(() => {
+                    generateNewProblem();
+                    problemCard.classList.remove('scale-110');
+                }, 500);
+
+            } else {
+                // Jawaban Salah
+                showFeedback("Oops, coba lagi ya!", false);
+                
+                // Picu animasi getar
+                answerInput.classList.add('shake');
+                // Hapus kelas animasi setelah selesai agar bisa dipicu lagi
+                setTimeout(() => {
+                    answerInput.classList.remove('shake');
+                }, 500);
+            }
+        }
+
+        // --- Event Listeners ---
+
+        // Klik tombol "Cek Jawaban"
+        checkBtn.addEventListener('click', checkAnswer);
+
+        // Tekan "Enter" di kolom input
+        answerInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                checkAnswer();
+            }
+        });
+
+        // Menyesuaikan ukuran canvas saat jendela diubah ukurannya
+        window.addEventListener('resize', resizeCanvas);
+
+        // --- Inisialisasi Game ---
+        document.addEventListener('DOMContentLoaded', () => {
+            resizeCanvas();
+            generateNewProblem();
+        });
+
+    </script>
+</body>
+</html>
