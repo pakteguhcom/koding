@@ -54,7 +54,21 @@ body, html {
   }
 }
 
+/* ----- 7. Media Queries untuk Desain Responsif ----- */
 
+/* Gaya untuk layar dengan lebar maksimal 768px (tablet dan mobile) */
+@media (max-width: 768px) {
+  /* Panel info akan memenuhi hampir seluruh lebar layar */
+  #info-panel {
+    width: 90%;
+    max-width: 90%; /* Memastikan tidak melebihi batas */
+  }
+
+  /* Ukuran node dikecilkan agar tidak terlalu mendominasi layar kecil */
+  .level-0 { width: 120px; height: 120px; font-size: 16px; }
+  .level-1 { width: 100px; height: 100px; font-size: 14px; }
+  .level-2 { width: 70px; height: 70px; font-size: 10px; }
+}
 /* ----- 3. Node Konsep (Bintang) ----- */
 .node {
   position: absolute; /* Posisi akan diatur oleh JavaScript */
